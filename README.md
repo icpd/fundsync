@@ -65,7 +65,15 @@ fundpeek tui
 
 列表页会显示基金名称、估值涨幅、当日收益、最新净值涨幅和汇总。当天估值不可用时，会回退到最新净值和历史净值计算当日收益。选中基金后按 Enter 可查看股票持仓明细。
 
-5. 如果还想在基估宝 GUI 面板中查看，登录基估宝并推送本地数据：
+5. 输出 JSON 给脚本或大模型分析：
+
+```sh
+fundpeek json
+```
+
+JSON 会读取本地 portfolio 快照并刷新基金行情，输出基金列表、估值涨幅、当日收益、最新净值涨幅和汇总；单只基金行情失败时会保留基金并在 `errors` 中记录原因。
+
+6. 如果还想在基估宝 GUI 面板中查看，登录基估宝并推送本地数据：
 
 ```sh
 fundpeek auth real
@@ -78,6 +86,7 @@ fundpeek push real
 
 ```sh
 fundpeek tui
+fundpeek json
 fundpeek sync
 fundpeek sync yjb
 fundpeek sync xb
@@ -88,6 +97,7 @@ fundpeek logout xb
 ```
 
 - `tui`：启动交互式终端界面。
+- `json`：输出基金持仓和行情 JSON，适合脚本或大模型读取。
 - `sync`：刷新本地 portfolio 快照；不带来源时默认刷新所有已授权来源。
 - `push real`：把本地 portfolio 快照推送到基估宝云端配置。
 - `logout`：删除指定来源的本地凭据。
@@ -130,7 +140,7 @@ FUNDPEEK_SUPABASE_ANON_KEY=...
 
 ## 数据来源说明
 
-本地持仓数据来自养基宝和小倍养基；`push real` 会把本地 portfolio 快照写入基估宝云端配置。TUI 的基金估值来自天天基金估值接口和东方财富基金净值数据，基金股票持仓来自东方财富基金 F10，股票实时行情来自腾讯行情接口。股票持仓明细只展示最近 6 个月内的基金持仓报告；过期报告不会展示。
+本地持仓数据来自养基宝和小倍养基；`push real` 会把本地 portfolio 快照写入基估宝云端配置。TUI 和 JSON 的基金估值来自天天基金估值接口和东方财富基金净值数据，基金股票持仓来自东方财富基金 F10，股票实时行情来自腾讯行情接口。股票持仓明细只展示最近 6 个月内的基金持仓报告；过期报告不会展示。
 
 ## 开发
 

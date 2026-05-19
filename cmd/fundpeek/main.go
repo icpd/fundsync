@@ -14,6 +14,7 @@ import (
 	"github.com/icpd/fundpeek/internal/config"
 	"github.com/icpd/fundpeek/internal/console"
 	"github.com/icpd/fundpeek/internal/credential"
+	"github.com/icpd/fundpeek/internal/jsonexport"
 	"github.com/icpd/fundpeek/internal/model"
 	"github.com/icpd/fundpeek/internal/tui"
 )
@@ -80,6 +81,8 @@ func run() error {
 			return errors.New("tui requires an interactive terminal")
 		}
 		return tui.Run(ctx, a)
+	case "json":
+		return jsonexport.Write(ctx, a, os.Stdout)
 	case "sync":
 		sourceArg := ""
 		if len(args) >= 2 {
@@ -127,7 +130,7 @@ func isHelpCommand(command string) bool {
 
 func isKnownCommand(command string) bool {
 	switch command {
-	case "auth", "status", "sync", "push", "logout", "tui":
+	case "auth", "status", "sync", "push", "logout", "tui", "json":
 		return true
 	default:
 		return false
@@ -212,6 +215,7 @@ Commands:
   auth <source>                 登录数据源，支持 real、yangjibao、xiaobei
   status                        查看各数据源登录状态
   tui                           打开基金估值和持仓 TUI
+  json                          输出基金持仓和行情 JSON
   sync [source]                 刷新本地 TUI 持仓数据，可选 yjb、xb、all，默认 all
   push real                     将本地持仓数据同步到估基宝
   logout <source>               退出指定数据源登录
@@ -227,5 +231,6 @@ Examples:
   fundpeek auth yjb
   fundpeek sync
   fundpeek tui
+  fundpeek json
   fundpeek push real`)
 }

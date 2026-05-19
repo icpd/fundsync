@@ -111,12 +111,15 @@ func TestHelpIncludesCommandDescriptionsAndExamples(t *testing.T) {
 		"登录数据源",
 		"tui",
 		"打开基金估值和持仓 TUI",
+		"json",
+		"输出基金持仓和行情 JSON",
 		"push real",
 		"Sources:",
 		"real",
 		"yangjibao",
 		"Examples:",
 		"fundpeek sync",
+		"fundpeek json",
 		"fundpeek push real",
 	} {
 		if !strings.Contains(out, want) {
@@ -127,6 +130,12 @@ func TestHelpIncludesCommandDescriptionsAndExamples(t *testing.T) {
 		if strings.Contains(out, unwanted) {
 			t.Fatalf("help should not mention %q:\n%s", unwanted, out)
 		}
+	}
+}
+
+func TestJSONIsKnownCommand(t *testing.T) {
+	if !isKnownCommand("json") {
+		t.Fatal("json should be a known command")
 	}
 }
 
