@@ -105,13 +105,13 @@ func TestSummarizeRowsTotalsProfitAndWeightedEstimatedChange(t *testing.T) {
 	rows := []Row{
 		{
 			Position:    Position{Code: "000001", Share: 100},
-			Quote:       valuation.Quote{GSZ: 1.02, HasGSZ: true, GSZZL: 2, HasGSZZL: true},
+			Quote:       valuation.Quote{GSZ: 1.02, HasGSZ: true, GSZZL: 2, HasGSZZL: true, DWJZ: 1.1, HasDWJZ: true, ZZL: 10, HasZZL: true},
 			TodayProfit: 2,
 			HasProfit:   true,
 		},
 		{
 			Position:    Position{Code: "000002", Share: 200},
-			Quote:       valuation.Quote{GSZ: 0.99, HasGSZ: true, GSZZL: -1, HasGSZZL: true},
+			Quote:       valuation.Quote{GSZ: 0.99, HasGSZ: true, GSZZL: -1, HasGSZZL: true, DWJZ: 1.8, HasDWJZ: true, ZZL: -10, HasZZL: true},
 			TodayProfit: -2,
 			HasProfit:   true,
 		},
@@ -137,13 +137,20 @@ func TestSummarizeRowsTotalsProfitAndWeightedEstimatedChange(t *testing.T) {
 	if math.Abs(got.EstimatedChange-wantEstimatedChange) > 0.000001 {
 		t.Fatalf("estimated change = %f, want %f", got.EstimatedChange, wantEstimatedChange)
 	}
+	if !got.HasLatestChange {
+		t.Fatal("expected latest change")
+	}
+	wantLatestChange := -30.0 / 500.0 * 100.0
+	if math.Abs(got.LatestChange-wantLatestChange) > 0.000001 {
+		t.Fatalf("latest change = %f, want %f", got.LatestChange, wantLatestChange)
+	}
 }
 
 func TestRenderTableSummaryDoesNotShowLatestChangePlaceholder(t *testing.T) {
 	out := renderTable([]Row{
 		{
 			Position:    Position{Code: "000001", Name: "测试基金", Share: 100},
-			Quote:       valuation.Quote{GSZ: 1.02, HasGSZ: true, GSZZL: 2, HasGSZZL: true, ZZL: 1, HasZZL: true},
+			Quote:       valuation.Quote{GSZ: 1.02, HasGSZ: true, GSZZL: 2, HasGSZZL: true, DWJZ: 1.01, HasDWJZ: true, ZZL: 1, HasZZL: true},
 			TodayProfit: 2,
 			HasProfit:   true,
 		},

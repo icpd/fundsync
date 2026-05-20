@@ -71,6 +71,8 @@ type summary struct {
 	HasProfit          bool
 	EstimatedChange    float64
 	HasEstimatedChange bool
+	LatestChange       float64
+	HasLatestChange    bool
 }
 
 type detailState struct {
@@ -644,8 +646,8 @@ func renderTableWithCursorAt(rows []Row, cursor int, width int, now time.Time) s
 		strings.Repeat(" ", selectorWidth) +
 			cell("基金名称/代码", fundWidth, lipgloss.Left) +
 			cell("估值涨幅↓", estWidth, lipgloss.Right) +
-			cell("当日收益", profitWidth, lipgloss.Right) +
-			cell("最新涨幅", latestWidth, lipgloss.Right),
+			cell("最新涨幅", latestWidth, lipgloss.Right) +
+			cell("当日收益", profitWidth, lipgloss.Right),
 	))
 	b.WriteString("\n")
 	b.WriteString(tuiHelpStyle.Render(strings.Repeat("─", tableWidth)))
@@ -658,8 +660,8 @@ func renderTableWithCursorAt(rows []Row, cursor int, width int, now time.Time) s
 		b.WriteString(prefix)
 		b.WriteString(cell(fundLabel(row, fundWidth), fundWidth, lipgloss.Left))
 		b.WriteString(cell(formatPercent(row.Quote.GSZZL, row.Quote.HasGSZZL), estWidth, lipgloss.Right))
-		b.WriteString(cell(formatMoney(row.TodayProfit, row.HasProfit), profitWidth, lipgloss.Right))
 		b.WriteString(cell(formatLatestPercent(row.Quote, now), latestWidth, lipgloss.Right))
+		b.WriteString(cell(formatMoney(row.TodayProfit, row.HasProfit), profitWidth, lipgloss.Right))
 		if row.QuoteErr != nil {
 			b.WriteString(" ")
 			b.WriteString(tuiErrStyle.Render("!"))
@@ -672,8 +674,8 @@ func renderTableWithCursorAt(rows []Row, cursor int, width int, now time.Time) s
 	b.WriteString("  ")
 	b.WriteString(cell("汇总", fundWidth, lipgloss.Left))
 	b.WriteString(cell(formatPercent(total.EstimatedChange, total.HasEstimatedChange), estWidth, lipgloss.Right))
+	b.WriteString(cell(formatPercent(total.LatestChange, total.HasLatestChange), latestWidth, lipgloss.Right))
 	b.WriteString(cell(formatMoney(total.TodayProfit, total.HasProfit), profitWidth, lipgloss.Right))
-	b.WriteString(cell("", latestWidth, lipgloss.Right))
 	b.WriteString("\n")
 	return b.String()
 }
@@ -822,22 +824,33 @@ func summarizeRows(rows []Row) summary {
 	var total summary
 	var estimatedProfit float64
 	var previousValue float64
+	var latestProfit float64
+	var latestPreviousValue float64
 	for _, row := range rows {
 		if row.HasProfit {
 			total.TodayProfit += row.TodayProfit
 			total.HasProfit = true
 		}
-		if !row.Quote.HasGSZ || !row.Quote.HasGSZZL || row.Quote.GSZZL <= -100 {
-			continue
+		if row.Quote.HasGSZ && row.Quote.HasGSZZL && row.Quote.GSZZL > -100 {
+			currentValue := row.Share * row.Quote.GSZ
+			rowPreviousValue := currentValue / (1 + row.Quote.GSZZL/100)
+			estimatedProfit += currentValue - rowPreviousValue
+			previousValue += rowPreviousValue
 		}
-		currentValue := row.Share * row.Quote.GSZ
-		rowPreviousValue := currentValue / (1 + row.Quote.GSZZL/100)
-		estimatedProfit += currentValue - rowPreviousValue
-		previousValue += rowPreviousValue
+		if row.Quote.HasDWJZ && row.Quote.HasZZL && row.Quote.ZZL > -100 {
+			currentValue := row.Share * row.Quote.DWJZ
+			rowPreviousValue := currentValue / (1 + row.Quote.ZZL/100)
+			latestProfit += currentValue - rowPreviousValue
+			latestPreviousValue += rowPreviousValue
+		}
 	}
 	if previousValue > 0 {
 		total.EstimatedChange = estimatedProfit / previousValue * 100
 		total.HasEstimatedChange = true
+	}
+	if latestPreviousValue > 0 {
+		total.LatestChange = latestProfit / latestPreviousValue * 100
+		total.HasLatestChange = true
 	}
 	return total
 }
